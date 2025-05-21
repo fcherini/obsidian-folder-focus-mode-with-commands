@@ -1,7 +1,6 @@
 import FolderFocusModePlugin from "main";
-import { App, PluginSettingTab, Setting } from "obsidian";
+import { App, ButtonComponent, PluginSettingTab, Setting } from "obsidian";
 export class FolderFocusModeSettingTab extends PluginSettingTab {
-
 	plugin: FolderFocusModePlugin;
 
 	constructor(app: App, plugin: FolderFocusModePlugin) {
@@ -14,7 +13,9 @@ export class FolderFocusModeSettingTab extends PluginSettingTab {
 		containerEl.empty();
 		new Setting(containerEl)
 			.setName("Auto-Focus when hidden")
-			.setDesc("Ensures the plugin focuses automatically on directory of newly opened files, if they are not visible right now")
+			.setDesc(
+				"Ensures the plugin focuses automatically on directory of newly opened files, if they are not visible right now"
+			)
 			.addToggle((component) =>
 				component
 					.setValue(this.plugin.settings.autofocusMode)
@@ -26,7 +27,9 @@ export class FolderFocusModeSettingTab extends PluginSettingTab {
 
 		new Setting(containerEl)
 			.setName("Auto-Focus on root")
-			.setDesc("Focus on the first folder from root if the auto focus setting is enabled")
+			.setDesc(
+				"Focus on the first folder from root if the auto focus setting is enabled"
+			)
 			.addToggle((component) =>
 				component
 					.setValue(this.plugin.settings.autofocusRoot)
@@ -38,7 +41,9 @@ export class FolderFocusModeSettingTab extends PluginSettingTab {
 
 		new Setting(containerEl)
 			.setName("Force auto-focus on parent directory")
-			.setDesc("Always auto-focus on the parent directory of current file, even if it is already visible")
+			.setDesc(
+				"Always auto-focus on the parent directory of current file, even if it is already visible"
+			)
 			.addToggle((component) =>
 				component
 					.setValue(this.plugin.settings.autofocusForced)
@@ -50,7 +55,9 @@ export class FolderFocusModeSettingTab extends PluginSettingTab {
 
 		new Setting(containerEl)
 			.setName("Simplified view")
-			.setDesc("Hide parent directories when focusing on a folder (saves space when using nested folders)")
+			.setDesc(
+				"Hide parent directories when focusing on a folder (saves space when using nested folders)"
+			)
 			.addToggle((component) =>
 				component
 					.setValue(this.plugin.settings.simplifiedView)
@@ -64,38 +71,75 @@ export class FolderFocusModeSettingTab extends PluginSettingTab {
 		new Setting(containerEl)
 			.setName("Button on explorer")
 			.setDesc("Add a button on the top of the file explorer")
-			.addToggle((component)=>
+			.addToggle((component) =>
 				component
 					.setValue(this.plugin.settings.focusButton)
-					.onChange(async(value)=>{
-						this.plugin.settings.focusButton=value;
+					.onChange(async (value) => {
+						this.plugin.settings.focusButton = value;
 						this.plugin.initialiseFocusButton(value);
 						await this.plugin.saveSettings();
-				})
+					})
 			);
 
 		new Setting(containerEl)
 			.setName("Show focus option on file context menu")
-			.setDesc("Show \"Focus on this file\" option in file context menu")
-			.addToggle((component)=>
+			.setDesc('Show "Focus on this file" option in file context menu')
+			.addToggle((component) =>
 				component
 					.setValue(this.plugin.settings.fileContextMenu)
-					.onChange(async(value)=>{
-						this.plugin.settings.fileContextMenu=value;
+					.onChange(async (value) => {
+						this.plugin.settings.fileContextMenu = value;
 						await this.plugin.saveSettings();
-				})
+					})
 			);
 
 		new Setting(containerEl)
-			.setName('Folder Note: External files')
-			.setDesc('Focus on the folder linked with the folder note')
-			.addToggle((component)=>
+			.setName("Folder Note: External files")
+			.setDesc("Focus on the folder linked with the folder note")
+			.addToggle((component) =>
 				component
 					.setValue(this.plugin.settings.focusNote)
-					.onChange(async(value)=>{
-						this.plugin.settings.focusNote=value;
+					.onChange(async (value) => {
+						this.plugin.settings.focusNote = value;
 						await this.plugin.saveSettings();
-				})
+					})
 			);
+
+		new Setting(containerEl)
+			.setName("Focus on folder command")
+			.setDesc("Add a command to focus on a selected folder");
+
+		this.plugin.settings.folderCommands.forEach((folderCommand, i) => {
+			new Setting(containerEl)
+				.addText((text) => {
+					text.setPlaceholder("Type folder path")
+						.setValue(this.plugin.settings.folderCommands[i])
+						.onChange(async (value) => {
+							this.plugin.settings.folderCommands[i] = value;
+							await this.plugin.saveSettings();
+						});
+				})
+				.addExtraButton((cb) => {
+					cb.setIcon("cross")
+						.setTooltip("Delete")
+						.onClick(() => {
+							this.plugin.settings.folderCommands.splice(i, 1);
+							this.plugin.saveSettings();
+							this.display();
+						});
+				});
+		});
+
+		new Setting(containerEl).addButton((button: ButtonComponent) => {
+			button
+				.setButtonText("Add new folder commmand")
+				.setTooltip("Add additional folder command")
+				.setCta()
+				.onClick(() => {
+					this.plugin.settings.folderCommands.push("");
+					this.plugin.saveSettings();
+					this.display();
+				});
+		});
 	}
 }
